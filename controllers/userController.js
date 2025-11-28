@@ -27,8 +27,23 @@ const updateUser = async (req, res) => {
   const { id } = req.params;
   const body = req.body;
   try {
-    const updatedUser = await User.updateOne({ _id: id }, body);
-    return res.json(updatedUser);
+    const users = await User.find();
+    const updateUser = users.findIndex((u) => u._id == id);
+
+    if (updateUser === -1) {
+      return res.send("User not found");
+    }
+
+    const user = users[updateUser];
+    if (body.name) user.name = body.name;
+    if (body.email) user.email = body.email;
+    if (body.password) user.password = body.password;
+    if (body.age) user.age = body.age;
+    if (body.maritalStatus !== undefined)
+      user.maritalStatus = body.maritalStatus;
+
+    await user.save();
+    return res.send("User updated successfully!");
   } catch (error) {
     return res.send("Something went wrong");
   }
@@ -38,8 +53,15 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
-    await User.deleteOne({ _id: id });
-    return res.json({ message: "User deleted" });
+    const users = await User.find();
+    const deleteUserIndex = users.findIndex((u) => u._id == id);
+
+    if (deleteUserIndex === -1) {
+      return res.send("User not found");
+    }
+
+    await users[deleteUserIndex].remove();
+    return res.send("User deleted successfully");
   } catch (error) {
     return res.send("Something went wrong");
   }
@@ -49,5 +71,5 @@ module.exports = {
   createUser,
   getAllUsers,
   updateUser,
-  deleteUser
+  deleteUser,
 };
